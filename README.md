@@ -2,6 +2,8 @@
 
 Simple browser based card generator for faster prototyping of boardgames. I designed this as a single HTML file with embedded CSS and JavaScript, to make it easier for you to download, modify and run offline.
 
+[Try it now!](http://htmlpreview.github.io/?https://github.com/vildninja/card/blob/master/index.html)
+
 ## How to Use
 
 The tool has three text fields where you can fill in data:
@@ -20,4 +22,5 @@ The rest is written by me.
 The code contains two JavaScripts: the "compiled" CSV parser and my GenerateCards() function. The GenerateCards() function is where you should be looking if you want to make any additions. Further more I have included some CSS to hide everything but the cards from the printer + telling the printer to print as is (by default printers ignore background colors and images).
 
 *Happy prototyping :)*
+
 */Jannek*
