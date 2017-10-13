@@ -134,9 +134,33 @@ function GenerateCards()
 		        	page-break-inside: avoid;
 				}
 			}
-			textarea {
+			.editor {
+				margin: 1pt 1pt 5pt 1pt;
+			}
+			textarea.editor {
 				width: 300px;
 				height: 200px;
+			}
+			h1.editor {
+				font-family: serif;
+				font-weight: bold;
+				font-style: normal;
+				font-size: 22pt;
+				color: black;
+			}
+			h2.editor {
+				font-family: serif;
+				font-weight: bold;
+				font-style: italic;
+				font-size: 18pt;
+				color: black;
+			}
+			p.editor {
+				font-family: serif;
+				font-weight: normal;
+				font-style: normal;
+				font-size: 14pt;
+				color: black;
 			}
 		</style>
 	</head>
@@ -144,27 +168,28 @@ function GenerateCards()
 	<table class="no-print" width="630px">
 		<tr>
 			<td colspan="3">
-				<h1>Welcome to cardGen</h1>
-				<p>Please edit in external tool. This site does not remember your data!</p>
+				<h1 class="editor">Welcome to cardGen</h1>
+				<p class="editor">Please edit in external tool. This site does not remember your data!</p>
+				<p class="editor">Simple browser based card generator for faster prototyping of boardgames. I designed this as a single HTML file with embedded CSS and JavaScript, to make it easier for you to download, modify and run offline.</p>
 			</td>
 		</tr>
 		<tr>
 			<td width="33%">
-				<h1>CSS design</h1>
-				<p>Please edit in external tool. This site does not remember your data!</p>
+				<h2 class="editor">CSS design</h2>
+				<p class="editor">The style of the cards. I have provided a basic example, but it should be easy to modify to your liking without too much effort. Read more about positioning elements on <a href="https://www.w3schools.com/css/css_positioning.asp">w3scools.com/css</a>.</p>
 			</td>
 			<td width="33%">
-				<h1>HTML layout</h1>
-				<p>Use %label% to insert value from CSV</p>
+				<h2 class="editor">HTML layout</h2>
+				<p class="editor">The template of the cards. The content of this box will be duplicated for every line in the CSV document. To insert text from the CSV document simlpy write %label% in the template. Read more about HTML on <a href="https://www.w3schools.com/html/html_blocks.asp">w3schools.com/html</a>.</p>
 			</td>
 			<td width="33%">
-				<h1>CSV data</h1>
-				<p>First line should be labels.</p>
+				<h2 class="editor">CSV data</h2>
+				<p class="editor">The comma seperated values. Any spread sheet editor should support export to this format. The first row of data should allways be the labels used to reference the data from the template (using %label%). Adding a colloumn named "copies" tells the cardGen how many copies of the card to generate.</p>
 			</td>
 		</tr>
 		<tr>
 			<td>
-				<textarea id="style" oninput="GenerateCards();">
+				<textarea id="style" class="editor" oninput="GenerateCards();">
 .frame {
 	position: relative;
 	float: left;
@@ -261,36 +286,33 @@ h3 {
 </textarea>
 			</td>
 			<td>
-				<textarea id="design" oninput="GenerateCards();">
-<div class="frame" style="background-color: %Color%">
+				<textarea id="design" class="editor" oninput="GenerateCards();">
+<div class="frame" style="background-color: %color%; border-color: %border%">
 <div class="card">
 <div class="name">
-<h1>%Name%</h1>
+<h1>%name%</h1>
 </div>
 <div class="pic" style="background-image: url('%imgurl%');">
 </div>
 <div class="middle">
-<h2>%PlayWhen%</h2>
+<h2>%type%</h2>
 </div>
 <div class="description">
-<p>%Effect%</p>
-<h3>"%Notes%"</h3>
+<p>%description%</p>
+<h3>"%notes%"</h3>
 </div>
 <div class="footer">
-<h3>MountEverest - v4</h3>
+<h3>cardGen</h3>
 </div>
 </div>
 </div>
 </textarea>
 			</td>
 			<td>
-				<textarea id="csv" oninput="GenerateCards();">Stack,copies,Type,Sub,Name,Effect,Notes,Trash,PlayWhen,Color
-,,,,,,,,,
-Items,1,Disposable,Instant,Syringe,"Roll a D6 1-5: Gain 1 adrenaline, 6: Lose all adrenaline and heat",,1,Play whenever,orange
-,1,Edible,,Yellow Snow,Lose all heat gain 3 adrenaline,,0,Play as an action,lightblue
-,1,Edible,,Right Arm,Gain 1 food,Yes this counts towards your number of limbs.,1,Play as an action or keep,white
-,2,Disposable,,Plastic bag,"Discard all ""non-Plastic bag"" cards in your trashpile",,2,Play as an action,lightblue
-,1,Tool,,Ice Axe,Pay 1 food to instantly get a grip,,2,Keep,white
+				<textarea id="csv" class="editor" oninput="GenerateCards();">copies,name,imgurl,type,description,notes,color,border
+2,"Animated Fox","https://i.imgur.com/aM30Y5W.gif","Play whenever","This Fox is super cool!","And a fluffy tail!!",lightblue,black
+1,"Lesser Fox","https://i.imgur.com/JUzvnwj.png","Play whenever","This Fox is kinda cool!","Would prefer a regular Fox though...",white,red
+2,"Blurry Fox","https://i.imgur.com/3QLhDjG.jpg","Play as an action","This Fox can evade enemy cameras!","Please use a macro lens next time..",lightblue,blue
 </textarea>
 			</td>
 		</tr>
