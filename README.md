@@ -2,7 +2,7 @@
 
 Simple browser based card generator for faster prototyping of boardgames. I designed this as a single HTML file with embedded CSS and JavaScript, to make it easier for you to download, modify and run offline.
 
-[Try it now!](http://htmlpreview.github.io/?https://github.com/vildninja/card/blob/master/index.html)
+Try it now at [https://pew.dk/card/](https://pew.dk/card/)
 
 ## How to Use
 
