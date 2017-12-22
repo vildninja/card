@@ -87,6 +87,183 @@ or feature requests.
 
 		<script type="text/javascript">
 
+function Tokenize(text, index, tokens)
+{
+	var current = {};
+	tokens.push(current);
+	current.txt = "";
+	current.type = "text";
+
+	for (var i = index; i < text.length; i++)
+	{
+		if (text[i] == "%")
+		{
+			if (text.substring(i, i + 4) == "%IF%" || text.substring(i, i + 5) == "%FOR%")
+			{
+				current = {};
+
+				current.type = "if";
+				var skip = 4;
+				if (text[i + 1] == "F")
+				{
+					current.type = "for";
+					skip = 5;
+				}
+
+				var next = text.indexOf("%", i + skip);
+				if (next < i)
+					return;
+
+				current.label = text.substring(i + skip, next);
+				current.tokens = [];
+
+				i = Tokenize(text, next + 1, current.tokens);
+
+				tokens.push(current);
+			}
+			else if (text.substring(i, i + 5) == "%END%")
+			{
+				return i + 4;
+			}
+			else
+			{
+				current = {};
+				current.type = "label";
+				var next = text.indexOf("%", i + 1);
+				if (next < i)
+					return;
+				current.label = text.substring(i + 1, next);
+
+				i = next;
+
+				tokens.push(current);
+			}
+			var current = {};
+			tokens.push(current);
+			current.txt = "";
+			current.type = "text";
+		}
+		else
+		{
+			if (text[i] == "\\")
+			{
+				i++;
+			}
+
+			current.txt += text[i];
+		}
+	}
+	return text.length;
+}
+
+function Construct(tokens, values)
+{
+	var text = "";
+	for (var i = 0; i < tokens.length; i++)
+	{
+		switch (tokens[i].type)
+		{
+			case "text":
+			text += tokens[i].txt;
+			break;
+
+			case "if":
+			if (values[tokens[i].label])
+			{
+				text += Construct(tokens[i].tokens, values);
+			}
+			break;
+
+			case "for":
+			var iterations = Number(values[tokens[i].label]);
+			if (iterations == NaN)
+				break;
+			if (iterations > 1000)
+				iterations = 1000;
+			for (var j = 0; j < iterations; j++)
+			{
+				text += Construct(tokens[i].tokens, values);
+			}
+			break;
+
+			case "label":
+			text += values[tokens[i].label];
+			break;
+		}
+
+	}
+	console.log(text);
+	return text;
+}
+
+/*
+function SplitText(text)
+{
+	var stack = [];
+
+	var tokens = [];
+	tokens.push({});
+	var current = tokens[tokens.length - 1];
+	current.txt = "";
+	current.type = "text";
+
+	for (var i = 0; i < text.length; i++)
+	{
+		var c = text[i];
+
+		if (c == "%")
+		{
+			tokens.push({})
+			var current = tokens[tokens.length - 1];
+			if (text.substring(i, i + 4) == "%IF%" || text.substring(i, i + 5) == "%FOR%")
+			{
+				current.type = "if";
+				var skip = 4;
+				if (text[i + 1] == "F")
+				{
+					current.type = "for";
+					skip = 5;
+				}
+
+				var next = text.indexOf("%", i + skip);
+				stack.push(tokens.length - 1);
+			}
+			else if (text.substring(i, i + 5) == "%END%")
+			{
+				var parent = stack.pop();
+				var current = tokens[parent];
+				current.tokens = [];
+
+				while (tokens.length > parent + 1)
+				{
+					current.tokens.unshift(tokens.pop());
+				}
+			}
+		}
+		else if (c == "\\")
+		{
+			c = text[++i];
+		}
+
+		if (c == "{")
+		{
+			tokens.push({});
+			var current = tokens[tokens.length - 1];
+			current.txt = "";
+		}
+		else if (c == "}")
+		{
+
+		}
+		else
+		{
+			currnet.txt += c;
+		}
+
+	}
+}
+*/
+
 function GenerateCards()
 {
 	var style = document.getElementById("style").value;
@@ -117,6 +294,31 @@ function GenerateCards()
 		{
 			target.innerHTML += copy;
 		}
+	}
+}
+
+function GenerateCardsNew()
+{
+	var style = document.getElementById("style").value;
+	var design = document.getElementById("design").value;
+	var data = document.getElementById("csv").value;
+	var target = document.getElementById("result");
+
+	var csv = new CSV(data, { header: true, cast: false }).parse();
+
+	document.getElementById("cardstyle").innerHTML = style;
+
+	target.innerHTML = "";
+
+	var tokens = [];
+	Tokenize(design, 0, tokens);
+
+	console.log(tokens);
+
+	for (var i = 0; i < csv.length; i++)
+	{
+		var row = csv[i];
+		target.innerHTML += Construct(tokens, row);
 	}
 }
 		</script>
@@ -167,7 +369,7 @@ function GenerateCards()
 			}
 		</style>
 	</head>
-	<body onload="GenerateCards();">
+	<body onload="GenerateCardsNew();">
 	<table class="no-print" width="100%">
 		<tr>
 			<td colspan="3">
@@ -194,7 +396,7 @@ function GenerateCards()
 		</tr>
 		<tr>
 			<td class="editor">
-				<textarea id="style" class="editor" oninput="GenerateCards();">
+				<textarea id="style" class="editor" oninput="GenerateCardsNew();">
 .frame {
 	position: relative;
 	float: left;
@@ -291,7 +493,8 @@ h3 {
 </textarea>
 			</td>
 			<td class="editor">
-				<textarea id="design" class="editor" oninput="GenerateCards();">
+				<textarea id="design" class="editor" oninput="GenerateCardsNew();">
+%FOR%copies%
 <div class="frame" style="background-color: %color%; border-color: %border%">
 <div class="card">
 <div class="name">
@@ -304,17 +507,18 @@ h3 {
 </div>
 <div class="description">
 <p>%description%</p>
-<h3>"%notes%"</h3>
+%IF%notes%<h3>"%notes%"</h3>%END%
 </div>
 <div class="footer">
 <h3>cardGen</h3>
 </div>
 </div>
 </div>
+%END%
 </textarea>
 			</td>
 			<td class="editor">
-				<textarea id="csv" class="editor" oninput="GenerateCards();">copies,name,imgurl,type,description,notes,color,border
+				<textarea id="csv" class="editor" oninput="GenerateCardsNew();">copies,name,imgurl,type,description,notes,color,border
 2,"Animated Fox","https://i.imgur.com/aM30Y5W.gif","Play whenever","This Fox is super cool!","And a fluffy tail!!",lightblue,black
 1,"Lesser Fox","https://i.imgur.com/JUzvnwj.png","Play whenever","This Fox is kinda cool!","Would prefer a regular Fox though...",white,red
 2,"Blurry Fox","https://i.imgur.com/3QLhDjG.jpg","Play as an action","This Fox can evade enemy cameras!","Please use a macro lens next time..",lightblue,blue
