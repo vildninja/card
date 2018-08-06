@@ -37,6 +37,7 @@ plan to make any huge improvements..
 -->
 <html>
 	<head>
+		<title>CardGen</title>
 		<script type="text/javascript">
 /*
 
@@ -266,15 +267,27 @@ function SplitText(text)
 
 function LoadData(target, urlinput)
 {
-    url = document.getElementById(urlinput).value;
+	document.getElementById(urlinput).style.backgroundColor = "white";
+    let url = document.getElementById(urlinput).value;
 
-	xhr = new XMLHttpRequest();
+    if (url.trim().length <= 2)
+	{
+		document.getElementById(urlinput).style.backgroundColor = "red";
+		return;
+	}
+
+	let xhr = new XMLHttpRequest();
 
 	xhr.addEventListener("load", function ()
 	{ 
 		//console.log(this.responseText);
 		document.getElementById(target).value = this.responseText.trim();
-		GenerateCards();
+		GenerateCardsNew();
+	});
+
+	xhr.addEventListener("error", function ()
+	{
+		document.getElementById(urlinput).style.backgroundColor = "red";
 	});
 
 	xhr.open("GET", url, true);
@@ -414,19 +427,19 @@ function GenerateCardsNew()
 		</tr>
 		<tr>
 			<td>
-				<form action="#" onsubmit="LoadData('style', 'styleurl');">
+				<form action="#" onsubmit="LoadData('style', 'styleurl'); return false;">
 					<input type="text" id="styleurl">
 					<input type="submit" value="load from url">
 				</form>
 			</td>
 			<td>
-				<form action="#" onsubmit="LoadData('design', 'designurl');">
+				<form action="#" onsubmit="LoadData('design', 'designurl'); return false;">
 					<input type="text" id="designurl">
 					<input type="submit" value="load from url">
 				</form>
 			</td>
 			<td>
-				<form action="#" onsubmit="LoadData('csv', 'dataurl');">
+				<form action="#" onsubmit="LoadData('csv', 'dataurl'); return false;">
 					<input type="text" id="dataurl">
 					<input type="submit" value="load from url">
 				</form>
