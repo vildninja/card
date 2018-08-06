@@ -267,12 +267,12 @@ function SplitText(text)
 
 function LoadData(target, urlinput)
 {
-	document.getElementById(urlinput).style.backgroundColor = "white";
-    let url = document.getElementById(urlinput).value;
+	urlinput.style.backgroundColor = "white";
+    let url = urlinput.value;
 
     if (url.trim().length <= 2)
 	{
-		document.getElementById(urlinput).style.backgroundColor = "red";
+		urlinput.style.backgroundColor = "red";
 		return;
 	}
 
@@ -287,13 +287,25 @@ function LoadData(target, urlinput)
 
 	xhr.addEventListener("error", function ()
 	{
-		document.getElementById(urlinput).style.backgroundColor = "red";
+		urlinput.style.backgroundColor = "red";
 	});
 
 	xhr.open("GET", url, true);
 	xhr.setRequestHeader('Content-type', 'text/plain');
 	xhr.send();
 }
+
+function LoadFileData(target, fileinput)
+{
+    var reader = new FileReader();
+    reader.onload = function()
+    {
+		document.getElementById(target).value = reader.result;
+		GenerateCardsNew();
+    };
+    reader.readAsText(fileinput.files[0]);
+}
+
 
 function GenerateCards()
 {
@@ -398,6 +410,17 @@ function GenerateCardsNew()
 			td.editor {
 				vertical-align: top;
 			}
+			form {
+				margin: 2px;
+			}
+			input {
+				width: 220px;
+				margin: 0px;
+				padding: 0px;
+			}
+			input.submit {
+				width: 70px;
+			}
 		</style>
 	</head>
 	<body onload="GenerateCardsNew();">
@@ -427,21 +450,33 @@ function GenerateCardsNew()
 		</tr>
 		<tr>
 			<td>
-				<form action="#" onsubmit="LoadData('style', 'styleurl'); return false;">
-					<input type="text" id="styleurl">
-					<input type="submit" value="load from url">
+				<form action="#" onsubmit="LoadData('style', this.url); return false;">
+					<input type="text" name="url">
+					<input class="submit" type="submit" value="load url">
+				</form>
+				<form action="#" onsubmit="LoadFileData('style', this.file); return false;">
+					<input type="file" name="file">
+					<input class="submit" type="submit" value="load file">
 				</form>
 			</td>
 			<td>
-				<form action="#" onsubmit="LoadData('design', 'designurl'); return false;">
-					<input type="text" id="designurl">
-					<input type="submit" value="load from url">
+				<form action="#" onsubmit="LoadData('design', this.url); return false;">
+					<input type="text" name="url">
+					<input class="submit" type="submit" value="load url">
+				</form>
+				<form action="#" onsubmit="LoadFileData('design', this.file); return false;">
+					<input type="file" name="file">
+					<input class="submit" type="submit" value="load file">
 				</form>
 			</td>
 			<td>
-				<form action="#" onsubmit="LoadData('csv', 'dataurl'); return false;">
-					<input type="text" id="dataurl">
-					<input type="submit" value="load from url">
+				<form action="#" onsubmit="LoadData('csv', this.url); return false;">
+					<input type="text" name="url">
+					<input class="submit" type="submit" value="load url">
+				</form>
+				<form action="#" onsubmit="LoadFileData('csv', this.file); return false;">
+					<input type="file" name="file">
+					<input class="submit" type="submit" value="load file">
 				</form>
 			</td>
 		<tr>
