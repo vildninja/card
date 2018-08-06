@@ -264,6 +264,24 @@ function SplitText(text)
 }
 */
 
+function LoadData(target, urlinput)
+{
+    url = document.getElementById(urlinput).value;
+
+	xhr = new XMLHttpRequest();
+
+	xhr.addEventListener("load", function ()
+	{ 
+		//console.log(this.responseText);
+		document.getElementById(target).value = this.responseText.trim();
+		GenerateCards();
+	});
+
+	xhr.open("GET", url, true);
+	xhr.setRequestHeader('Content-type', 'text/plain');
+	xhr.send();
+}
+
 function GenerateCards()
 {
 	var style = document.getElementById("style").value;
@@ -394,6 +412,25 @@ function GenerateCardsNew()
 				<p class="editor">The comma seperated values. Any spread sheet editor should support export to this format. The first row of data should allways be the labels used to reference the data from the template (using %label%). Adding a colloumn named "copies" tells the cardGen how many copies of the card to generate.</p>
 			</td>
 		</tr>
+		<tr>
+			<td>
+				<form action="#" onsubmit="LoadData('style', 'styleurl');">
+					<input type="text" id="styleurl">
+					<input type="submit" value="load from url">
+				</form>
+			</td>
+			<td>
+				<form action="#" onsubmit="LoadData('design', 'designurl');">
+					<input type="text" id="designurl">
+					<input type="submit" value="load from url">
+				</form>
+			</td>
+			<td>
+				<form action="#" onsubmit="LoadData('csv', 'dataurl');">
+					<input type="text" id="dataurl">
+					<input type="submit" value="load from url">
+				</form>
+			</td>
 		<tr>
 			<td class="editor">
 				<textarea id="style" class="editor" oninput="GenerateCardsNew();">
