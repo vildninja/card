@@ -122,6 +122,31 @@ function Tokenize(text, index, tokens)
 
 				tokens.push(current);
 			}
+			else if (text.substring(i, i + 4) == "%IF=")
+			{
+				current = {};
+
+				current.type = "equal";
+				var skip = 4;
+
+				var next = text.indexOf("%", i + skip);
+				if (next < i)
+					return;
+
+				current.text = text.substring(i + skip, next);
+				let n = next + 1;
+
+				var next = text.indexOf("%", n);
+				if (next < i)
+					return;
+
+				current.label = text.substring(n, next);
+				current.tokens = [];
+
+				i = Tokenize(text, next + 1, current.tokens);
+
+				tokens.push(current);
+			}
 			else if (text.substring(i, i + 5) == "%END%")
 			{
 				return i + 4;
@@ -170,6 +195,13 @@ function Construct(tokens, values)
 
 			case "if":
 			if (values[tokens[i].label])
+			{
+				text += Construct(tokens[i].tokens, values);
+			}
+			break;
+
+			case "equal":
+			if (values[tokens[i].label] == tokens[i].text)
 			{
 				text += Construct(tokens[i].tokens, values);
 			}
@@ -394,7 +426,7 @@ function GenerateCardsNew()
 				<h2 class="editor">HTML design</h2>
 				<p class="editor">The template of the cards. The content of this box will be duplicated for every line in the CSV document. To insert text from the CSV document simlpy write %label% in the template. Please use \% to write %.
 					<br>
-					You can also write %IF%label% ... %END% to only include segment if value is present for the given label.
+					You can also write %IF%label% ... %END% to only include segment if value is present for the given label. Alternative you can write %IF=x%label% ... %END% to only include segment if value for the given label is equal to x.
 					<br>
 					Or %FOR%label% ... %END% to repeat a segment according to the number provided for the label. Read more about HTML on <a href="https://www.w3schools.com/html/html_blocks.asp">w3schools.com/html</a>.</p>
 			</td>
