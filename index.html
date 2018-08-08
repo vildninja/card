@@ -288,7 +288,7 @@ function GenerateCardsDelayed()
 {
 	var style = document.getElementById("style").value;
 	document.getElementById("cardstyle").innerHTML = style;
-	
+
 	clearTimeout(timeoutHandle);
 	timeoutHandle = setTimeout(GenerateCardsNew, 1000);
 }
@@ -327,6 +327,32 @@ function GenerateCardsNew()
 	//let coroutine = GenerateHTML(tokens, csv, target);
 	//coroutine.next();
 	//intervalHandle = setInterval(function() {coroutine.next();}, 1);
+}
+
+function Download(link)
+{
+	let cards = {};
+	cards.style = document.getElementById("style").value;
+	cards.design = document.getElementById("design").value;
+	cards.csv = document.getElementById("csv").value;
+
+	link.setAttribute("href", "data:text/plain;charset=utf-8," +
+		encodeURIComponent(JSON.stringify(cards, null, 2)));
+	link.setAttribute("download", "cardGen.json");
+}
+
+function Upload(fileinput)
+{
+	var reader = new FileReader();
+    reader.onload = function()
+    {
+    	let cards = JSON.parse(reader.result);
+		document.getElementById("style").value = cards.style;
+		document.getElementById("design").value = cards.design;
+		document.getElementById("csv").value = cards.csv;
+		GenerateCardsNew();
+    };
+    reader.readAsText(fileinput.files[0]);
 }
 
 function* GenerateHTML(tokens, csv, target)
@@ -463,6 +489,7 @@ function* GenerateHTML(tokens, csv, target)
 					<input class="submit" type="submit" value="load file">
 				</form>
 			</td>
+		</tr>
 		<tr>
 			<td class="editor">
 				<textarea id="style" class="editor" oninput="GenerateCardsDelayed();">
@@ -592,6 +619,19 @@ h3 {
 1,"Lesser Fox","https://i.imgur.com/JUzvnwj.png","Play whenever","This Fox is kinda cool!","Would prefer a regular Fox though...",white,red
 2,"Blurry Fox","https://i.imgur.com/3QLhDjG.jpg","Play as an action","This Fox can evade enemy cameras!","Please use a macro lens next time..",lightblue,blue
 </textarea>
+			</td>
+		</tr>
+		<tr>
+			<td class="editor">
+				<p class="editor">
+					<a href="#" onclick="Download(this)">Download project as JSON</a>
+				</p>
+			</td>
+			<td colspan="2">
+				<form action="#" onsubmit="Upload(this.file); return false;">
+					<input type="file" name="file">
+					<input type="submit" value="Upload from JSON">
+				</form>
 			</td>
 		</tr>
 	</table>
