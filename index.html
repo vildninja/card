@@ -122,11 +122,13 @@ function Tokenize(text, index, tokens)
 
 				tokens.push(current);
 			}
-			else if (text.substring(i, i + 4) == "%IF=")
+			else if (text.substring(i, i + 4) == "%IF=" || text.substring(i, i + 4) == "%IF!")
 			{
 				current = {};
 
 				current.type = "equal";
+				if (text.substring(i, i + 4) == "%IF!")
+					current.type = "not";
 				var skip = 4;
 
 				var next = text.indexOf("%", i + skip);
@@ -201,7 +203,14 @@ function Construct(tokens, values)
 			break;
 
 			case "equal":
-			if (values[tokens[i].label] == tokens[i].text)
+			if (values[tokens[i].label] === tokens[i].text)
+			{
+				text += Construct(tokens[i].tokens, values);
+			}
+			break;
+
+			case "not":
+			if (values[tokens[i].label] !== tokens[i].text)
 			{
 				text += Construct(tokens[i].tokens, values);
 			}
@@ -337,7 +346,7 @@ function GenerateCardsDelayed()
 	document.getElementById("cardstyle").innerHTML = style;
 
 	clearTimeout(timeoutHandle);
-	timeoutHandle = setTimeout(GenerateCardsNew, 1000);
+	timeoutHandle = setTimeout(GenerateCardsNew, 100);
 }
 
 function GenerateCardsNew()
@@ -351,27 +360,46 @@ function GenerateCardsNew()
 
 	var target = document.getElementById("result");
 
-	var csv = new CSV(data, { header: true, cast: false }).parse();
+	// var csv = new CSV(data, { header: true, cast: false }).parse();
+
+	// var tokens = [];
+	// Tokenize(design, 0, tokens);
+
+	// console.log(tokens);
 
 
+	// target.innerHTML = "";
 
-	var tokens = [];
-	Tokenize(design, 0, tokens);
+	// for (var i = 0; i < csv.length; i++)
+	// {
+	// 	var row = csv[i];
+	// 	target.innerHTML += Construct(tokens, row);
+	// }
 
-	console.log(tokens);
-
-
-	target.innerHTML = "";
-
-	for (var i = 0; i < csv.length; i++)
-	{
-		var row = csv[i];
-		target.innerHTML += Construct(tokens, row);
-	}
+	let resut = BuildString(design, data);
+	resut.then(function (result) { console.log(target.innerHTML = result); });
 
 	//let coroutine = GenerateHTML(tokens, csv, target);
 	//coroutine.next();
 	//intervalHandle = setInterval(function() {coroutine.next();}, 1);
+}
+
+async function BuildString(design, data)
+{
+	let csv = new CSV(data, { header: true, cast: false }).parse();
+
+	let tokens = [];
+	Tokenize(design, 0, tokens);
+
+	let output = "";
+
+	for (let i = 0; i < csv.length; i++)
+	{
+		let row = csv[i];
+		output += Construct(tokens, row);
+	}
+
+	return output;
 }
 
 
