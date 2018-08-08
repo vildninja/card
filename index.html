@@ -225,7 +225,7 @@ function Construct(tokens, values)
 		}
 
 	}
-	console.log(text);
+	//console.log(text);
 	return text;
 }
 
@@ -272,39 +272,6 @@ function LoadFileData(target, fileinput)
 }
 
 
-function GenerateCards()
-{
-	var style = document.getElementById("style").value;
-	var design = document.getElementById("design").value;
-	var data = document.getElementById("csv").value;
-	var target = document.getElementById("result");
-
-	var csv = new CSV(data, { header: true, cast: false }).parse();
-
-	document.getElementById("cardstyle").innerHTML = style;
-
-	target.innerHTML = "";
-
-	for (var i = 0; i < csv.length; i++)
-	{
-		var row = csv[i];
-		var copy = design;
-		for (var k in row)
-		{
-			if (row[k])
-			{
-				copy = copy.replace("%"+k+"%", row[k]);
-			}
-		}
-
-		var copies = row.hasOwnProperty("copies") ? row["copies"] : 1;
-		for (var c = 0; c < copies; c++)
-		{
-			target.innerHTML += copy;
-		}
-	}
-}
-
 function LoadFromWebStorage()
 {
 	if (window.localStorage.hasOwnProperty("style"))
@@ -315,9 +282,21 @@ function LoadFromWebStorage()
 		document.getElementById("csv").value = window.localStorage.csv;
 }
 
+var timeoutHandle;
+
+function GenerateCardsDelayed()
+{
+	var style = document.getElementById("style").value;
+	document.getElementById("cardstyle").innerHTML = style;
+	
+	clearTimeout(timeoutHandle);
+	timeoutHandle = setTimeout(GenerateCardsNew, 1000);
+}
+
 function GenerateCardsNew()
 {
 	var style = document.getElementById("style").value;
+	document.getElementById("cardstyle").innerHTML = style;
 	var design = document.getElementById("design").value;
 	var data = document.getElementById("csv").value;
 
@@ -329,21 +308,39 @@ function GenerateCardsNew()
 
 	var csv = new CSV(data, { header: true, cast: false }).parse();
 
-	document.getElementById("cardstyle").innerHTML = style;
 
-	target.innerHTML = "";
 
 	var tokens = [];
 	Tokenize(design, 0, tokens);
 
 	console.log(tokens);
 
+
+	target.innerHTML = "";
+
 	for (var i = 0; i < csv.length; i++)
 	{
 		var row = csv[i];
 		target.innerHTML += Construct(tokens, row);
 	}
+
+	//let coroutine = GenerateHTML(tokens, csv, target);
+	//coroutine.next();
+	//intervalHandle = setInterval(function() {coroutine.next();}, 1);
 }
+
+function* GenerateHTML(tokens, csv, target)
+{
+	for (var i = 0; i < csv.length; i++)
+	{
+		var row = csv[i];
+		target.innerHTML += Construct(tokens, row);
+		if (i % 3 == 0 && i > 0)
+			yield;
+	}
+	clearInterval(intervalHandle);
+}
+
 		</script>
 
 		<style type="text/css">
@@ -468,7 +465,7 @@ function GenerateCardsNew()
 			</td>
 		<tr>
 			<td class="editor">
-				<textarea id="style" class="editor" oninput="GenerateCardsNew();">
+				<textarea id="style" class="editor" oninput="GenerateCardsDelayed();">
 .frame {
 	position: relative;
 	float: left;
@@ -565,7 +562,7 @@ h3 {
 </textarea>
 			</td>
 			<td class="editor">
-				<textarea id="design" class="editor" oninput="GenerateCardsNew();">
+				<textarea id="design" class="editor" oninput="GenerateCardsDelayed();">
 %FOR%copies%
 <div class="frame" style="background-color: %color%; border-color: %border%">
 <div class="card">
@@ -590,7 +587,7 @@ h3 {
 </textarea>
 			</td>
 			<td class="editor">
-				<textarea id="csv" class="editor" oninput="GenerateCardsNew();">copies,name,imgurl,type,description,notes,color,border
+				<textarea id="csv" class="editor" oninput="GenerateCardsDelayed();">copies,name,imgurl,type,description,notes,color,border
 2,"Animated Fox","https://i.imgur.com/aM30Y5W.gif","Play whenever","This Fox is super cool!","And a fluffy tail!!",lightblue,black
 1,"Lesser Fox","https://i.imgur.com/JUzvnwj.png","Play whenever","This Fox is kinda cool!","Would prefer a regular Fox though...",white,red
 2,"Blurry Fox","https://i.imgur.com/3QLhDjG.jpg","Play as an action","This Fox can evade enemy cameras!","Please use a macro lens next time..",lightblue,blue
