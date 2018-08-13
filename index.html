@@ -97,18 +97,25 @@ function Tokenize(text, index, tokens)
 
 	for (var i = index; i < text.length; i++)
 	{
-		if (text[i] == "%")
+		if (text[i] === "%")
 		{
-			if (text.substring(i, i + 4) == "%IF%" || text.substring(i, i + 5) == "%FOR%")
+			if (text.substring(i, i + 4) === "%IF%" ||
+				text.substring(i, i + 5) === "%FOR%" ||
+				text.substring(i, i + 6) === "%FOR!%")
 			{
 				current = {};
 
 				current.type = "if";
 				var skip = 4;
-				if (text[i + 1] == "F")
+				if (text[i + 1] === "F")
 				{
 					current.type = "for";
 					skip = 5;
+					if (text[i + 4] === "!")
+					{
+						current.type = "fornot";
+						var skip = 6;
+					}
 				}
 
 				var next = text.indexOf("%", i + skip);
@@ -122,12 +129,13 @@ function Tokenize(text, index, tokens)
 
 				tokens.push(current);
 			}
-			else if (text.substring(i, i + 4) == "%IF=" || text.substring(i, i + 4) == "%IF!")
+			else if (text.substring(i, i + 4) === "%IF=" ||
+				text.substring(i, i + 4) === "%IF!")
 			{
 				current = {};
 
 				current.type = "equal";
-				if (text.substring(i, i + 4) == "%IF!")
+				if (text.substring(i, i + 4) === "%IF!")
 					current.type = "not";
 				var skip = 4;
 
@@ -149,7 +157,7 @@ function Tokenize(text, index, tokens)
 
 				tokens.push(current);
 			}
-			else if (text.substring(i, i + 5) == "%END%")
+			else if (text.substring(i, i + 5) === "%END%")
 			{
 				return i + 4;
 			}
@@ -173,7 +181,7 @@ function Tokenize(text, index, tokens)
 		}
 		else
 		{
-			if (text[i] == "\\")
+			if (text[i] === "\\")
 			{
 				i++;
 			}
@@ -184,53 +192,68 @@ function Tokenize(text, index, tokens)
 	return text.length;
 }
 
-function Construct(tokens, values)
+function Construct(tokens, rows, index)
 {
-	var text = "";
-	for (var i = 0; i < tokens.length; i++)
+	let text = "";
+	let row = rows[index];
+
+	if (!row)
+		return text;
+
+	for (let i = 0; i < tokens.length; i++)
 	{
 		switch (tokens[i].type)
 		{
 			case "text":
-			text += tokens[i].txt;
-			break;
+				text += tokens[i].txt;
+				break;
 
 			case "if":
-			if (values[tokens[i].label])
-			{
-				text += Construct(tokens[i].tokens, values);
-			}
-			break;
+				if (row[tokens[i].label])
+				{
+					text += Construct(tokens[i].tokens, rows, index);
+				}
+				break;
 
 			case "equal":
-			if (values[tokens[i].label] === tokens[i].text)
-			{
-				text += Construct(tokens[i].tokens, values);
-			}
-			break;
+				if (row[tokens[i].label] === tokens[i].text)
+				{
+					text += Construct(tokens[i].tokens, rows, index);
+				}
+				break;
 
 			case "not":
-			if (values[tokens[i].label] !== tokens[i].text)
-			{
-				text += Construct(tokens[i].tokens, values);
-			}
-			break;
+				if (row[tokens[i].label] !== tokens[i].text)
+				{
+					text += Construct(tokens[i].tokens, rows, index);
+				}
+				break;
 
 			case "for":
-			var iterations = Number(values[tokens[i].label]);
-			if (iterations == NaN)
+				let iterations = Number(row[tokens[i].label]);
+				if (iterations == NaN)
+					break;
+				if (iterations > 1000)
+					iterations = 1000;
+				for (let j = 0; j < iterations; j++)
+				{
+					text += Construct(tokens[i].tokens, rows, index);
+				}
 				break;
-			if (iterations > 1000)
-				iterations = 1000;
-			for (var j = 0; j < iterations; j++)
-			{
-				text += Construct(tokens[i].tokens, values);
-			}
-			break;
+
+			case "fornot":
+				for (let j = index; j < index + 10; j++)
+				{
+					text += Construct(tokens[i].tokens, rows, j);
+
+					if (j + 1 >= rows.length || rows[j + 1][tokens[i].label])
+						break;
+				}
+				break;
 
 			case "label":
-			text += values[tokens[i].label];
-			break;
+				text += row[tokens[i].label];
+				break;
 		}
 
 	}
@@ -360,28 +383,9 @@ function GenerateCardsNew()
 
 	var target = document.getElementById("result");
 
-	// var csv = new CSV(data, { header: true, cast: false }).parse();
-
-	// var tokens = [];
-	// Tokenize(design, 0, tokens);
-
-	// console.log(tokens);
-
-
-	// target.innerHTML = "";
-
-	// for (var i = 0; i < csv.length; i++)
-	// {
-	// 	var row = csv[i];
-	// 	target.innerHTML += Construct(tokens, row);
-	// }
 
 	let resut = BuildString(design, data);
 	resut.then(function (result) { console.log(target.innerHTML = result); });
-
-	//let coroutine = GenerateHTML(tokens, csv, target);
-	//coroutine.next();
-	//intervalHandle = setInterval(function() {coroutine.next();}, 1);
 }
 
 async function BuildString(design, data)
@@ -395,8 +399,7 @@ async function BuildString(design, data)
 
 	for (let i = 0; i < csv.length; i++)
 	{
-		let row = csv[i];
-		output += Construct(tokens, row);
+		output += Construct(tokens, csv, i);
 	}
 
 	return output;
